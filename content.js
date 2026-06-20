@@ -40,7 +40,8 @@
   let conversationTokens = 0;
   let apiTokens = 0;             // full-conversation tokens from claude.ai's own data (0 if unavailable)
   let domTokens = 0;             // tokens summed from rendered messages (live updates / fallback)
-  let lastFetchedConv = null;
+  let lastApiFetch = 0;          // throttle timestamp for the conversation fetch
+  let lastAsstUuid = null;       // uuid of the most recent assistant reply (to detect a NEW one)
   let lastAssistantTokens = 0;   // length of the most recent reply (for "do that again")
   let pred = { low: 0, mid: 0, high: 0 };
   let learnStats = { n: 0, cov: null };   // how much it has learned from this user
@@ -217,9 +218,10 @@
   async function fetchConversationTokens(force) {
     try {
       const m = location.pathname.match(/\/chat\/([0-9a-f-]{36})/i);
-      if (!m) { apiTokens = 0; lastFetchedConv = null; return; }  // new/empty chat → DOM handles it
+      if (!m) { apiTokens = 0; return; }                          // new/empty chat → DOM handles it
+      if (!force && Date.now() - lastApiFetch < 1200) return;     // throttle (re-fetches as the chat changes)
+      lastApiFetch = Date.now();
       const conv = m[1];
-      if (!force && conv === lastFetchedConv) return;                  // already counted this chat
       let org = (document.cookie.match(/lastActiveOrg=([0-9a-f-]{36})/i) || [])[1];
       if (!org) {
         const orgs = await fetch('/api/organizations', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -230,15 +232,24 @@
       const data = await fetch(url, { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null);
       const msgs = data && (data.chat_messages || data.messages);
       if (!Array.isArray(msgs) || !msgs.length) return;
-      let text = '';
+      let total = 0, lastAsst = null;
       for (const mm of msgs) {
-        if (typeof mm.text === 'string' && mm.text) text += mm.text + '\n';
-        if (Array.isArray(mm.content)) for (const c of mm.content) { if (c && typeof c.text === 'string') text += c.text + '\n'; }
+        let t = (typeof mm.text === 'string' && mm.text) ? mm.text : '';
+        if (!t && Array.isArray(mm.content)) for (const c of mm.content) { if (c && typeof c.text === 'string') t += c.text + '\n'; }
+        const tok = estimateTokens(t);
+        total += tok;                                              // count BOTH your prompts and Claude's replies
+        if ((mm.sender || mm.role) === 'assistant') lastAsst = { uuid: mm.uuid, tok };
       }
-      if (!text) return;
-      apiTokens = estimateTokens(text);
+      apiTokens = total;
       conversationTokens = Math.max(apiTokens, domTokens);
-      lastFetchedConv = conv;
+      if (lastAsst && lastAsst.tok > 0) {
+        lastAssistantTokens = lastAsst.tok;
+        // A new assistant reply appeared → learn from it (pair it with the prompt we predicted on).
+        if (lastAsst.uuid && lastAsst.uuid !== lastAsstUuid) {
+          lastAsstUuid = lastAsst.uuid;
+          if (pendingPrediction) { recordLearning(pendingPrediction, lastAsst.tok); pendingPrediction = null; }
+        }
+      }
       render();
     } catch (e) { /* fall back to the DOM sum */ }
   }
@@ -463,8 +474,14 @@
         pred = predictOutput(text, inputTokens);            // cold-start rule fallback
         if (inputTokens > 0 && window.TMModel) features = window.TMModel.featurize(text, inputTokens);
       }
-      // Remember features + prediction so we can learn from the actual reply later.
-      lastPrediction = { input: inputTokens, mid: pred.mid, low: pred.low, high: pred.high, features };
+      // Snapshot the prediction. When the box goes from text → empty, that's a send,
+      // so the snapshot becomes "pending" and gets paired with the reply for learning.
+      if (inputTokens > 0) {
+        lastNonEmptyPred = { input: inputTokens, mid: pred.mid, low: pred.low, high: pred.high, features };
+      } else if (lastNonEmptyPred) {
+        pendingPrediction = lastNonEmptyPred;
+        lastNonEmptyPred = null;
+      }
       render();
     } catch (e) { /* never let counting break the widget */ }
   }
@@ -473,40 +490,27 @@
     if (isComposer(e.target)) handleInput(e.target);
   }, true);
 
-  // ─── Adaptive learning: record actual reply length ───────────────────────
-  let lastPrediction = null;
-  let lastSeen = '';
-  function recordActual() {
+  // ─── Adaptive learning: record actual reply length (from claude.ai's data) ──
+  let pendingPrediction = null;   // prediction for a sent message, awaiting its reply
+  let lastNonEmptyPred = null;    // most recent prediction made while the box had text
+  function recordLearning(lp, actualTokens) {
     try {
-      if (!lastPrediction) return;
-      const streaming = document.querySelector('[data-is-streaming="true"], [data-testid="streaming-indicator"]');
-      if (streaming) return;                       // wait until streaming stops
-      const msgs = document.querySelectorAll('[data-testid="assistant-message"], .font-claude-message');
-      const latest = msgs[msgs.length - 1];
-      if (!latest) return;
-      const text = latest.innerText || '';
-      if (!text || text === lastSeen) return;
-      lastSeen = text;
-      const actual = estimateTokens(text);
-      if (actual < 5) return;
-      const lp = lastPrediction;
-      const entry = { input: lp.input, predicted: lp.mid, low: lp.low, high: lp.high, actual, ts: Date.now(), f: lp.features || null };
-      lastPrediction = null;
+      if (!lp || actualTokens < 1) return;
+      const entry = { input: lp.input, predicted: lp.mid, low: lp.low, high: lp.high, actual: actualTokens, ts: Date.now(), f: lp.features || null };
       chrome.storage?.local.get(['history'], ({ history = [] }) => {
         history.push(entry);
         if (history.length > 200) history = history.slice(-200);
         chrome.storage?.local.set({ history });
-        retrainModel(history);          // fine-tune from this new data point
+        retrainModel(history);        // fine-tune from this new data point
+        updateLearnStats(history);    // refresh the visible "tuned on N" indicator
       });
-      fetchConversationTokens(true);    // refresh authoritative total to include the new turn
     } catch (e) { /* ignore */ }
   }
 
   // ─── Observe page for injection, convo changes, and reply completion ─────
   const mo = new MutationObserver(() => {
     ensureWidget();        // (re)inject if missing
-    scheduleConvoCount();  // debounced — cheap
-    recordActual();        // cheap guard, returns early while streaming
+    scheduleConvoCount();  // debounced — recounts + detects new replies via the API
   });
   mo.observe(document.documentElement, { childList: true, subtree: true });
 
@@ -522,8 +526,8 @@
     if (location.href !== lastUrl) {
       lastUrl = location.href;
       inputTokens = 0; conversationTokens = 0; pred = { low: 0, mid: 0, high: 0 };
-      lastPrediction = null; lastSeen = ''; seenMsgs = {};   // new conversation → fresh count
-      apiTokens = 0; domTokens = 0; lastFetchedConv = null;
+      pendingPrediction = null; lastNonEmptyPred = null; seenMsgs = {};   // new conversation → fresh count
+      apiTokens = 0; domTokens = 0; lastAsstUuid = null; lastApiFetch = 0;
       setTimeout(ensureWidget, 600);
     }
   }, 600);
