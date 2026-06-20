@@ -1,38 +1,81 @@
-Privacy Policy
-Token Meter for Claude
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy | Token Meter for Claude</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    max-width: 720px; margin: 0 auto; padding: 48px 20px 80px;
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1f2328; background: #fff;
+  }
+  h1 { font-size: 28px; margin: 0 0 2px; }
+  .sub { color: #656d76; font-weight: 600; margin: 0 0 2px; }
+  h2 { font-size: 18px; margin: 32px 0 8px; }
+  .eff { color: #656d76; margin: 4px 0 24px; }
+  p, li { color: #24292f; }
+  code { background: rgba(127,127,127,.15); padding: 1px 5px; border-radius: 5px; font-size: 90%; }
+  ul { padding-left: 22px; }
+  .note { border-left: 3px solid #8b5cf6; padding: 8px 14px; background: rgba(139,92,246,.06); border-radius: 0 8px 8px 0; }
+  footer { margin-top: 48px; color: #656d76; font-size: 14px; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e6edf3; background: #0d1117; }
+    p, li { color: #c9d1d9; } h1, h2, .sub { color: #e6edf3; } .eff, footer { color: #8b949e; }
+  }
+</style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="sub">Token Meter for Claude</p>
+  <p class="eff"><strong>Effective date:</strong> June 2026</p>
 
-Effective date: June 2026
+  <p>Token Meter ("the Extension") is a browser extension that estimates token usage on claude.ai. This Privacy Policy describes what data the Extension accesses, how it is used, and how it is stored. In summary, all processing happens locally in your browser, and no data is ever sent to the developer or to any third party.</p>
 
-Token Meter ("the Extension") is a browser extension that estimates token usage on claude.ai. This Privacy Policy describes what data the Extension accesses, how it is used, and how it is stored. In summary, all processing happens locally in your browser, and no data is ever sent to the developer or to any third party.
+  <h2>Information the Extension accesses</h2>
+  <ul>
+    <li><strong>Conversation text on claude.ai.</strong> To estimate how many tokens your message and the current conversation use, the Extension reads the text of the current chat, including your prompts and Claude's replies, within your own browser session. This reading occurs locally and only on <code>claude.ai</code>.</li>
+    <li><strong>Message box content.</strong> The text you type into the message box is read locally to count its tokens as you type.</li>
+  </ul>
 
-Information the Extension accesses
-Conversation text on claude.ai. To estimate how many tokens your message and the current conversation use, the Extension reads the text of the current chat, including your prompts and Claude's replies, within your own browser session. This reading occurs locally and only on claude.ai.
-Message box content. The text you type into the message box is read locally to count its tokens as you type.
-Information the Extension stores
-Settings, such as whether the widget is enabled and your selected context-window size.
-A local learning history consisting of numeric features of recent prompts, the predicted reply length, and the actual reply length. This is used to personalize predictions to your usage and is limited to the most recent 200 entries.
-All of this information is stored using the browser's local extension storage (chrome.storage.local) on your own device.
+  <h2>Information the Extension stores</h2>
+  <ul>
+    <li><strong>Settings,</strong> such as whether the widget is enabled and your selected context-window size.</li>
+    <li><strong>A local learning history</strong> consisting of numeric features of recent prompts, the predicted reply length, and the actual reply length. This is used to personalize predictions to your usage and is limited to the most recent 200 entries.</li>
+  </ul>
+  <p>All of this information is stored using the browser's local extension storage (<code>chrome.storage.local</code>) on your own device.</p>
 
-Information the Extension does not collect or share
-The Extension does not transmit your conversations, prompts, or replies to the developer.
-The Extension does not send any data to third-party servers, analytics services, or advertisers.
-The Extension does not sell or share any user data.
-The Extension contains no remote code. All logic and the prediction model are bundled within it.
-Permissions and their purposes
-storage: used to save your settings and the local learning history on your device.
-Host access to https://claude.ai/*: used to display the widget and read conversation text on claude.ai. The Extension runs on no other website.
-Data retention and control
-Stored data remains in your browser until you delete it. You can remove it at any time by uninstalling the Extension or by clearing its storage in your browser. Uninstalling the Extension deletes all of its stored data.
+  <h2>Information the Extension does not collect or share</h2>
+  <ul>
+    <li>The Extension does not transmit your conversations, prompts, or replies to the developer.</li>
+    <li>The Extension does not send any data to third-party servers, analytics services, or advertisers.</li>
+    <li>The Extension does not sell or share any user data.</li>
+    <li>The Extension contains no remote code. All logic and the prediction model are bundled within it.</li>
+  </ul>
 
-Children's privacy
-The Extension is not directed at children and does not collect personal information.
+  <h2>Permissions and their purposes</h2>
+  <ul>
+    <li><code>storage</code>: used to save your settings and the local learning history on your device.</li>
+    <li>Host access to <code>https://claude.ai/*</code>: used to display the widget and read conversation text on claude.ai. The Extension runs on no other website.</li>
+  </ul>
 
-Changes to this policy
-Any material change to this policy will be reflected on this page with an updated effective date.
+  <h2>Data retention and control</h2>
+  <p>Stored data remains in your browser until you delete it. You can remove it at any time by uninstalling the Extension or by clearing its storage in your browser. Uninstalling the Extension deletes all of its stored data.</p>
 
-Contact
-For questions about this policy, contact ashleyzhou731@gmail.com.
+  <h2>Children's privacy</h2>
+  <p>The Extension is not directed at children and does not collect personal information.</p>
 
-Affiliation. Token Meter is an independent, unofficial tool. It is not affiliated with, endorsed by, or sponsored by Anthropic. "Claude" is a trademark of Anthropic and is used here only to describe compatibility.
+  <h2>Changes to this policy</h2>
+  <p>Any material change to this policy will be reflected on this page with an updated effective date.</p>
 
-Copyright 2026 Ashley Zhou. Token Meter for Claude.
+  <h2>Contact</h2>
+  <p>For questions about this policy, contact <a href="mailto:ashleyzhou731@gmail.com">ashleyzhou731@gmail.com</a>.</p>
+
+  <div class="note">
+    <p style="margin:0"><strong>Affiliation.</strong> Token Meter is an independent, unofficial tool. It is not affiliated with, endorsed by, or sponsored by Anthropic. "Claude" is a trademark of Anthropic and is used here only to describe compatibility.</p>
+  </div>
+
+  <footer>Copyright 2026 Ashley Zhou. Token Meter for Claude.</footer>
+</body>
+</html>
