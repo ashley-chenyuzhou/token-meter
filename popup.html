@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 260px;
+      margin: 0;
+      padding: 14px 16px;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #1f2937;
+      background: #ffffff;
+      font-size: 13px;
+    }
+    h1 { font-size: 14px; margin: 0 0 2px; display: flex; align-items: center; gap: 7px; }
+    .sub { color: #6b7280; font-size: 11px; margin: 0 0 14px; }
+    .field { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; }
+    label { font-weight: 500; }
+    select {
+      font-size: 13px; padding: 4px 6px; border-radius: 7px;
+      border: 1px solid #d1d5db; background: #fff;
+    }
+    .switch { position: relative; width: 38px; height: 22px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; cursor: pointer;
+      background: #cbd5e1; border-radius: 999px; transition: .2s;
+    }
+    .slider::before {
+      content: ""; position: absolute; height: 16px; width: 16px;
+      left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s;
+    }
+    input:checked + .slider { background: #8b5cf6; }
+    input:checked + .slider::before { transform: translateX(16px); }
+    .stat {
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee;
+      color: #6b7280; font-size: 11px; line-height: 1.5;
+    }
+    .stat b { color: #1f2937; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #1f1f23; color: #ececec; }
+      select { background: #2a2a2e; color: #ececec; border-color: #3f3f46; }
+      .stat { border-color: #333; color: #9ca3af; }
+      .stat b { color: #ececec; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Token Meter</h1>
+  <p class="sub">Token estimates for claude.ai, before you send.</p>
+
+  <div class="field">
+    <label for="enabled">Show widget</label>
+    <span class="switch">
+      <input type="checkbox" id="enabled" checked>
+      <span class="slider"></span>
+    </span>
+  </div>
+
+  <div class="field">
+    <label for="limit">Context limit</label>
+    <select id="limit">
+      <option value="auto">Auto (match model)</option>
+      <option value="500000">500k · Opus 4.x / Sonnet 4.6</option>
+      <option value="200000">200k · older models</option>
+      <option value="1000000">1M · Claude Code</option>
+      <option value="100000">100k</option>
+    </select>
+  </div>
+
+  <div class="stat" id="stat">Learning from your history: not enough data yet.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
